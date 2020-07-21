@@ -97,7 +97,7 @@ var svg = d3.select("body")
 
 //-----------------------------DATA------------------------------//
 const timeConv = d3.timeParse("%Y");
-const dataset = d3.csv("https://raw.githubusercontent.com/EricEllwanger/DataViz/master/FinalProject/Data/vehicleco2-all.csv");
+const dataset = d3.csv("https://raw.githubusercontent.com/EricEllwanger/EricEllwanger.github.io/master/Data/vehicleco2-all.csv");
 dataset.then(function(data) {
     //Get data for total co2 emmisions and vehicle registrations by year
     var AvgCars = d3.nest()
