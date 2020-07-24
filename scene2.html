@@ -12,6 +12,49 @@
       border-radius: 8px;
     }
 	
+  #stepProgressBar  {
+	display:  flex;
+	justify-content:  space-between;
+	align-items:  flex-end;
+	width:  200px;
+	margin:  0;
+	margin-bottom:  0px;
+   }
+
+  .step  {
+    text-align:  center;
+   }
+
+  .step-text  {
+    margin-bottom:  10px;
+    color:  #28a745;
+   }
+
+
+  .bullet {
+	border: 1px solid #28a745;
+	height: 20px;
+	width: 20px;
+	border-radius: 100%;
+	color: #28a745;
+	display: inline-block;
+	position: relative;
+	transition: background-color 500ms;
+    line-height:20px;
+   }
+
+
+  .bullet.completed  {
+	 color:  white;
+	 background-color:  #28a745;
+   }
+
+
+  /* Base styles and helper stuff */
+  .hidden  {
+	display:  none;
+   }	
+
 	circle{
 	   fill: steelblue;
 	   stroke: orange;
@@ -50,9 +93,14 @@
       padding: 16px 24px;
    }
 
-   a:hover {
+   .next:hover {
       background-color: #ddd;
-      color: black;
+      color: white;
+   }
+   
+   .previous:hover {
+      background-color: #ddd;
+      color: white;
    }
 
    .previous {
@@ -69,7 +117,7 @@
       border-radius: 50%;
    }	
   </style>
-<title>MPG</title>
+<title>Scene 2</title>
 <head>
   <body>
     <h1>MPG and CO2 Emmisions</h1>
@@ -78,8 +126,21 @@
 <style></style>
 </head>
 <body>
-<a href="#" class="previous round" id="prev">&#8249;</a>
-<a href="#" class="next round" id="next">&#8250;</a>
+<a class="previous round" id="prev">&#8249;</a>
+<a class="next round" id="next">&#8250;</a>
+<a class="step">
+<div id="stepProgressBar">
+	<div class="step">
+		<div class="bullet">1</div>
+	</div>
+	<div class="step">
+		<div class="bullet">2</div>
+	</div>
+	<div class="step">
+		<div class="bullet">3</div>
+    </div>
+</div>
+</a>
 <div id="buttonToggle"></div>
 <div id="container" class="svg-container"></div>
 <script>
@@ -101,8 +162,12 @@ var svg = d3.select("body").append("svg")
         .attr("transform", 
               "translate(" + margin.left + "," + margin.top + ")");
 
-
-
+const  bullets  =  [...document.querySelectorAll('.bullet')];
+const MAX_STEPS = 4;
+let currentStep = 1;
+console.log(bullets)
+bullets[currentStep  -  1].classList.add('completed');
+bullets[currentStep].classList.add('completed');
 //-----------------------------DATA------------------------------//
 const dataset = d3.csv("https://raw.githubusercontent.com/EricEllwanger/EricEllwanger.github.io/master/Data/vehicleco2-all.csv");
 dataset.then(function(data) {
@@ -124,10 +189,10 @@ dataset.then(function(data) {
   const formatValue = d3.format(".2s");
 
   xScale.domain(data.map(d => d.year));
-  yScaleR.domain([380,550]);
+  yScaleL.domain([380,550]);
 //   yScaleR.domain(d3.extent(data, function(d){
 //        return d.co2TailpipeGpm;}));
-  yScaleL.domain([16, 25]);
+  yScaleR.domain([16, 25]);
 //   yScaleL.domain(d3.extent(data, function(e){
 //        return e.comb08;}));
 
@@ -153,22 +218,22 @@ dataset.then(function(data) {
   svg.append("g")
     .attr("class", "axis")
 	.attr("transform", "translate(" + width + " ,0)")	
-	.style("color", "orange")
+	.style("color", "steelblue")
 	.call(yaxisR);
   svg.append("text")
     .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
     .attr("transform", "translate("+ (width+margin.right-25) +","+(height/2)+")rotate(90)")  // text is drawn off the screen top left, move down and out and rotate
-    .text("Average Tailpipe CO2 emmisions(grams per mile)");
+    .text("Average MPG");
 
   // LEFT SIDE Y AXIS
   svg.append("g")
     .attr("class", "axis")
-	.style("color", "steelblue")
+	.style("color", "orange")
     .call(yaxisL)
   svg.append("text")
     .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
     .attr("transform", "translate("+ (30-margin.left) +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
-    .text("Average MPG");
+	.text("Average Tailpipe CO2 emmisions(grams per mile)");
 
 //----------------------------TOOLTIP------------------------------//
   // Add the tooltip container to the vis container
@@ -213,8 +278,8 @@ dataset.then(function(data) {
       
   bars.attr("x", function(d) { return xScale(d.key); })
     .attr("width", xScale.bandwidth())
-    .attr("y", function(d) { return yScaleL(d.value.mpg); })
-    .attr("height", function(d) { return height - yScaleL(d.value.mpg); })
+    .attr("y", function(d) { return yScaleR(d.value.mpg); })
+    .attr("height", function(d) { return height - yScaleR(d.value.mpg); })
 	.attr("fill", "steelblue")
     .attr("id", function(d, i) {
                 return i;})
@@ -228,7 +293,7 @@ dataset.then(function(data) {
     .attr("stroke-width", 1.5)
 	.attr("d", d3.line()
       .x(function(d) { return (xScale(d.key) + xScale.bandwidth() / 2)})
-      .y(function(d) { return yScaleR(d.value.co2) }));
+      .y(function(d) { return yScaleL(d.value.co2) }));
 
 
 
@@ -321,9 +386,13 @@ dataset.then(function(data) {
 
 //---------------------------- NAVIGATION ------------------------------//
   d3.select("#prev").on("click", function() {
+  	      bullets[currentStep  -  1].classList.remove('completed');
+	      currentStep  -=  1;
           window.location = "./index.html"});
   d3.select("#next").on("click", function() {
-          window.location = "./scene3.html"});
+          bullets[currentStep].classList.add('completed');
+	      currentStep  +=  1;
+          window.location = "./scene3.html";});
 		  
 var zoom = d3.zoom()
     .scaleExtent([1, 8])
